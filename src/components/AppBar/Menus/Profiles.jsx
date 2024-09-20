@@ -38,7 +38,7 @@ function Profiles() {
             onClick={handleClick}
           >
             <Avatar 
-              sx={{ width: 32, height: 32 }}
+              sx={{ width: 34, height: 34 }}
               src='https://scontent.fsgn2-8.fna.fbcdn.net/v/t39.30808-1/437918682_1801615997014828_7874766212613586370_n.jpg?stp=dst-jpg_s200x200&_nc_cat=102&ccb=1-7&_nc_sid=0ecb9b&_nc_eui2=AeH9GMRIl7AvWfRelEs8RB40UWQQ_ey6NoFRZBD97Lo2gfwjasB_KQbci01B_dCvMnzdMhICAuMsfLjYLaIbfpMT&_nc_ohc=BwDzJyVyKaEQ7kNvgHjU13o&_nc_ht=scontent.fsgn2-8.fna&_nc_gid=AgFt9ZiA9Lzd0F0Ba46L7zV&oh=00_AYAL2qB55Vg5Qq-XP92fKEjAhGtAiVfzEUataMrzmG1eYQ&oe=66F0B7AF'
             />
           </Button>
