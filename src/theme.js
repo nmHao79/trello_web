@@ -1,6 +1,6 @@
 
-import { Height, Widgets } from '@mui/icons-material'
-import { cyan, deepOrange, orange, red, teal } from '@mui/material/colors'
+// import { Height, Widgets } from '@mui/icons-material'
+// import { cyan, deepOrange, orange, red, teal } from '@mui/material/colors'
 import { experimental_extendTheme as extendTheme } from '@mui/material/styles'
 
 // Create a theme instance.
@@ -12,16 +12,16 @@ const theme = extendTheme({
   },
   colorSchemes: {
     light: {
-      palette: {
-        primary: teal,
-        secondary: deepOrange
-      }
+      // palette: {
+      //   primary: teal,
+      //   secondary: deepOrange
+      // }
     },
     dark: {
-      palette: {
-        primary: cyan,
-        secondary: orange
-      }
+      // palette: {
+      //   primary: cyan,
+      //   secondary: orange
+      // }
     }
   },
   components: {
@@ -33,48 +33,40 @@ const theme = extendTheme({
             height: '8px'
           },
           '*::-webkit-scrollbar-thumb': {
-            backgroundColor: '#9DBDFF',
+            backgroundColor: '#dcdde1',
             borderRadius: '8px'
           },
           '*::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: '#D7C3F1'
+            backgroundColor: 'white'
           }
         }
       }
     },
+    //cau hinh button khong tu dong viet hoa
     MuiButton: {
       styleOverrides: {
         root: {
-          textTransform: 'none'
+          textTransform: 'none',
+          borderWidth: '0.3px',
+          '&:hover ': { borderWidth: '2px' }
         }
       }
     },
     MuiInputLabel: {
       styleOverrides: {
-        root: ({ theme }) => ({
-          color: theme.palette.primary.main,
+        root: {
           fontSize: '0.8rem'
-        })
+        }
       }
     },
     MuiOutlinedInput: {
       styleOverrides: {
-        root: ({ theme }) => ({
-          color: theme.palette.primary.main,
+        root:{
           fontSize: '0.8rem',
-          '.MuiOutlinedInput-notchedOutline' : {
-            borderColor: theme.palette.primary.light
-          },
-          '&:hover': {
-            '.MuiOutlinedInput-notchedOutline' : {
-              borderColor: theme.palette.primary.main
-            }
-          },
-          '& fieldset': {
-            borderWidth: '1px !important'
-            //click field not bold
-          }
-        })
+          '& fieldset': { borderWidth: '0.1px !important' },
+          '&:hover fieldset': { borderWidth: '2px !important' },
+          '&.Mui-focused fieldset': { borderWidth: '2px !important' }
+        }
       }
     }
   }
