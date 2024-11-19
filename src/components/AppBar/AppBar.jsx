@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import Box from '@mui/material/Box'
-import ModeSelect from '../../components/ModeSelect'
+import ModeSelect from '../ModeSelect/ModeSelect'
 import AppsIcon from '@mui/icons-material/Apps'
 import { ReactComponent as TrellaLogo } from '~/assets/trella.svg'
 import SvgIcon from '@mui/material/SvgIcon'
@@ -20,11 +20,11 @@ import AddToPhotosIcon from '@mui/icons-material/AddToPhotos'
 import SearchIcon from '@mui/icons-material/Search'
 import CloseIcon from '@mui/icons-material/Close'
 function AppBar() {
-  const [searchValue, setSearchvalue] = useState('')
+  const [searchValue, setSearchValue] = useState('')
   return (
     <Box sx={{
       width: '100%',
-      height: (theme) => theme.trello.appBarHeight,
+      height: (theme) => theme.trella.appBarHeight,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -56,13 +56,13 @@ function AppBar() {
         </Box>
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <TextField 
+        <TextField
           id="outlined-search"
           label="Search..."
           type="text"
           size='small'
           value={searchValue}
-          onChange={(e) => setSearchvalue(e.target.value)}
+          onChange={(e) => setSearchValue(e.target.value)}
           InputProps={{
             startAdornment: (
               <InputAdornment position='start'>
@@ -76,7 +76,7 @@ function AppBar() {
                   color: searchValue ? 'white' : 'transparent',
                   cursor: 'pointer'
                 }}
-                onClick={() => setSearchvalue('')}
+                onClick={() => setSearchValue('')}
               />
             )
           }}
