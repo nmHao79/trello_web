@@ -11,16 +11,18 @@ import {
   DragOverlay,
   defaultDropAnimationSideEffects,
   closestCorners,
-  rectIntersection,
   pointerWithin,
   getFirstCollision,
-  closestCenter
+  // rectIntersection,
+  // closestCenter
 } from '@dnd-kit/core'
 import { arrayMove, defaultAnimateLayoutChanges } from '@dnd-kit/sortable'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Column from './ListColumns/Column/Column'
 import Card from './ListColumns/Column/ListCards/Card/Card'
-import { cloneDeep, over } from 'lodash'
+import { cloneDeep, over, isEmpty } from 'lodash'
+import {generatePlaceholderCard} from '~/utils/formatters'
+
 const ACTIVE_DRAG_ITEM_TYPE = {
   COLUMN :'ACTIVE_DRAG_ITEM_TYPE_COLUMN',
   CARD : 'ACTIVE_DRAG_ITEM_TYPE_CARD'
@@ -81,13 +83,19 @@ function BoardContent({ board }) {
       const nextColumns = cloneDeep(prevColumns)
       const nextActiveColumn = nextColumns.find(column => column._id === activeColumn._id)
       const nextOverColumn = nextColumns.find(column => column._id === overColumn._id)
+
       //column cu
       if (nextActiveColumn) {
         // xoa card column active (column cu ) cai luc keo card ra khoi no de sang column khac
         nextActiveColumn.cards = nextActiveColumn.cards.filter(card => card._id !== activeDraggingCardId)
+        //Them placeholder card neu column rong
+        if (isEmpty(nextActiveColumn.cards)) {
+          nextActiveColumn.cards = [generatePlaceholderCard(nextActiveColumn)]
+        }
         //cap nhap cardOrderIds
         nextActiveColumn.cardOrderIds = nextActiveColumn.cards.map(card => card._id)
       }
+
       //column moi
       if (nextOverColumn) {
         //
@@ -100,6 +108,8 @@ function BoardContent({ board }) {
         }
         //them card dang keo  vao overColumn theo vi tri index moi
         nextOverColumn.cards = nextOverColumn.cards.toSpliced(newCardIndex, 0, rebuild_activeDraggingCardData)
+        //xoa  placerholder card khi co 1 item moi them vao
+        nextOverColumn.cards = nextOverColumn.cards.filter(card => !card.FE_PlaceholderCard)
         //cap nhap cardOrderIds
         nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
       }
@@ -239,17 +249,19 @@ function BoardContent({ board }) {
     }
     //tim cac diem va cham voi con tro
     const pointerIntersection = pointerWithin(args)
+    if(!pointerIntersection?.length) return 
+    // const intersections = !!pointerIntersection?.length
+    //   ? pointerIntersection
+    //   : rectIntersection(args)
 
-    const intersections = !!pointerIntersection?.length
-      ? pointerIntersection
-      : rectIntersection(args)
-      let overId = getFirstCollision(intersections, 'id')
+    // tim overId dau tien trong dam pointerIntersection
+      let overId = getFirstCollision(pointerIntersection, 'id')
       console.log('overId: ', overId)
       if(overId){
         const checkColumn = orderedColumns.find(column => column._id === overId)
         if(checkColumn) {
           // console.log('overId bf: ', overId)
-          overId = closestCenter({
+          overId = closestCorners({
             ...args ,
             droppableContainers: args.droppableContainers.filter(container => {
               return (container.id !== overId) && (checkColumn?.cardOrderIds?.includes(container.id ))
