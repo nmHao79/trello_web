@@ -255,25 +255,25 @@ function BoardContent({ board }) {
     //   : rectIntersection(args)
 
     // tim overId dau tien trong dam pointerIntersection
-      let overId = getFirstCollision(pointerIntersection, 'id')
-      console.log('overId: ', overId)
-      if(overId){
-        const checkColumn = orderedColumns.find(column => column._id === overId)
-        if(checkColumn) {
-          // console.log('overId bf: ', overId)
-          overId = closestCorners({
-            ...args ,
-            droppableContainers: args.droppableContainers.filter(container => {
-              return (container.id !== overId) && (checkColumn?.cardOrderIds?.includes(container.id ))
-            })
-          })[0]?.id
-          // console.log('overId at: ', overId)
-        }
-        lastOverId.current = overId
-        return [{ id: overId}]
+    let overId = getFirstCollision(pointerIntersection, 'id')
+    console.log('overId: ', overId)
+    if(overId) {
+      const checkColumn = orderedColumns.find(column => column._id === overId)
+      if(checkColumn) {
+        // console.log('overId bf: ', overId)
+        overId = closestCorners({
+          ...args ,
+          droppableContainers: args.droppableContainers.filter(container => {
+            return (container.id !== overId) && (checkColumn?.cardOrderIds?.includes(container.id ))
+          })
+        })[0]?.id
+        // console.log('overId at: ', overId)
       }
-      // Neu overId null tra ve mang rong tranh crash trang 
-      return lastOverId.current ? [{id: lastOverId.current}] : []
+      lastOverId.current = overId
+      return [{ id: overId}]
+    }
+    // Neu overId null tra ve mang rong tranh crash trang
+    return lastOverId.current ? [{id: lastOverId.current}] : []
   }, [activeDragItemType, orderedColumns])
   return (
     <DndContext
