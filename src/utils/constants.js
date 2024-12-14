@@ -9,4 +9,4 @@ if (process.env.BUILD_MODE === 'production') {
 }
 //call backend
 export const API_ROOT = apiRoot
-console.log("🚀 ~ apiRoot:", apiRoot)
+
