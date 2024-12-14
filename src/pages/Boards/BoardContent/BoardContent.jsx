@@ -1,12 +1,11 @@
 import Box from '@mui/material/Box'
 import ListColumns from './ListColumns/ListColumns'
-import { mapOrder } from '~/utils/sorts'
 import {
   DndContext,
-  PointerSensor,
-  MouseSensor,
-  TouchSensor,
+  //PointerSensor,
   useSensor,
+  // MouseSensor,
+  // TouchSensor,
   useSensors,
   DragOverlay,
   defaultDropAnimationSideEffects,
@@ -16,11 +15,12 @@ import {
   // rectIntersection,
   // closestCenter
 } from '@dnd-kit/core'
-import { arrayMove, defaultAnimateLayoutChanges } from '@dnd-kit/sortable'
+import { MouseSensor, TouchSensor } from '~/customsLibraries/DndKitSensors'
+import { arrayMove } from '@dnd-kit/sortable'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Column from './ListColumns/Column/Column'
 import Card from './ListColumns/Column/ListCards/Card/Card'
-import { cloneDeep, over, isEmpty } from 'lodash'
+import { cloneDeep, isEmpty } from 'lodash'
 import {generatePlaceholderCard} from '~/utils/formatters'
 
 const ACTIVE_DRAG_ITEM_TYPE = {
@@ -28,7 +28,16 @@ const ACTIVE_DRAG_ITEM_TYPE = {
   CARD : 'ACTIVE_DRAG_ITEM_TYPE_CARD'
 }
 
-function BoardContent({ board }) {
+function BoardContent({
+  board,
+  createNewColumn,
+  createNewCard,
+  moveColumns,
+  moveCardInTheSameColumn,
+  moveCardToDifferentColumn,
+  deleteColumnDetails
+  
+}) {
 
   // yeu cau di chuyen 10px thi moi kich hoat event, fix truong hop click bi goi event
   // const pointSensor = useSensor(PointerSensor, { activationConstraint: { distance: 10 } } )
@@ -47,7 +56,7 @@ function BoardContent({ board }) {
 
   const lastOverId = useRef(null)
   useEffect( () => {
-    setOrderedColumns(mapOrder(board?.columns, board?.columnOrderIds, '_id'))
+    setOrderedColumns(board.columns)
   }, [board] )
 
   //tim 1 column theo cardId
@@ -55,7 +64,7 @@ function BoardContent({ board }) {
     //
     return orderedColumns.find(column => column.cards.map(card => card._id)?.includes(cardId))
   }
-  // Func chung xu ly viec Cap nhap lai state trong truong hop di chuyen cards qua lai giua cac column khac nhau
+  // Khoi taoFunc chung xu ly viec Cap nhap lai state trong truong hop di chuyen cards qua lai giua cac column khac nhau
   const moveCardsBetweenDifferentColumns = (
     overColumn,
     overCardId,
@@ -63,7 +72,8 @@ function BoardContent({ board }) {
     over,
     activeColumn,
     activeDraggingCardData,
-    activeDraggingCardId
+    activeDraggingCardId,
+    triggerFrom
 
   ) => {
     setOrderedColumns(prevColumns => {
@@ -112,6 +122,15 @@ function BoardContent({ board }) {
         nextOverColumn.cards = nextOverColumn.cards.filter(card => !card.FE_PlaceholderCard)
         //cap nhap cardOrderIds
         nextOverColumn.cardOrderIds = nextOverColumn.cards.map(card => card._id)
+      }
+      //Neu func nay dc goi tu handleDragEnd nghia la da keo tha xong, chi can goi API 1 lan
+      if (triggerFrom === 'handleDragEnd') {
+        moveCardToDifferentColumn(
+          activeDraggingCardId,
+          oldColumnWhenDraggingCard._id,
+          nextOverColumn._id,
+          nextColumns
+        )
       }
       return nextColumns
     })
@@ -162,7 +181,8 @@ function BoardContent({ board }) {
         over,
         activeColumn,
         activeDraggingCardData,
-        activeDraggingCardId
+        activeDraggingCardId,
+        'handleDragOver'
       )
     }
   }
@@ -191,13 +211,14 @@ function BoardContent({ board }) {
           over,
           activeColumn,
           activeDraggingCardData,
-          activeDraggingCardId
+          activeDraggingCardId,
+          'handleDragEnd'
         )
       } else {
         const oldCardIndex = oldColumnWhenDraggingCard?.cards?.findIndex(c => c._id === activeDragItemId)// vi tri cu tu oldColumnWhenDraggingCard
         const newCardIndex = overColumn?.cards?.findIndex(c => c._id === overCardId)
         const dndOrderedCards = arrayMove(oldColumnWhenDraggingCard?.cards, oldCardIndex, newCardIndex )
-
+        const dndOrderedCardsIds =dndOrderedCards.map(card => card._id)
         setOrderedColumns(prevColumns => {
 
           const nextColumns = cloneDeep(prevColumns)
@@ -206,11 +227,11 @@ function BoardContent({ board }) {
 
           // Cap nhap lai 2 gia tri moi la card va cardOrderIds trong targetColumn
           targetColum.cards = dndOrderedCards
-          targetColum.cardOrderIds = dndOrderedCards.map(card => card._id)
-          console.log('targetColum',targetColum)
+          targetColum.cardOrderIds = dndOrderedCardsIds
 
           return nextColumns
         })
+        moveCardInTheSameColumn(dndOrderedCards, dndOrderedCardsIds, oldColumnWhenDraggingCard._id)
       }
     }
     //xu ly keo tha column
@@ -219,11 +240,9 @@ function BoardContent({ board }) {
         const oldColumnIndex = orderedColumns.findIndex(c => c._id === active.id)// vi tri cu tu active
         const newColumnIndex = orderedColumns.findIndex(c => c._id === over.id)
         const dndOrderedColumns = arrayMove(orderedColumns, oldColumnIndex, newColumnIndex )
-        // const dndOrderedColumnsIds = dndOrderedColumns.map(c => c._id)
-        // console.log('dndOrderedColumns :', dndOrderedColumns)
-        // console.log('dndOrderedColumnsIds :', dndOrderedColumnsIds)
         //cap nhap lai state columns ban dau sau khi keo tha
         setOrderedColumns(dndOrderedColumns)
+        moveColumns(dndOrderedColumns)
       }
     }
     // nhung du lieu sau khi keo tha luon phai tra ve null
@@ -249,17 +268,16 @@ function BoardContent({ board }) {
     }
     //tim cac diem va cham voi con tro
     const pointerIntersection = pointerWithin(args)
-    if(!pointerIntersection?.length) return 
+    if (!pointerIntersection?.length) return 
     // const intersections = !!pointerIntersection?.length
     //   ? pointerIntersection
     //   : rectIntersection(args)
 
     // tim overId dau tien trong dam pointerIntersection
     let overId = getFirstCollision(pointerIntersection, 'id')
-    console.log('overId: ', overId)
-    if(overId) {
+    if (overId) {
       const checkColumn = orderedColumns.find(column => column._id === overId)
-      if(checkColumn) {
+      if (checkColumn) {
         // console.log('overId bf: ', overId)
         overId = closestCorners({
           ...args ,
@@ -289,7 +307,12 @@ function BoardContent({ board }) {
         height: (theme) => theme.trella.boardContentHeight,
         p: '10px 0'
       }}>
-        <ListColumns columns= {orderedColumns}/>
+        <ListColumns 
+          columns= {orderedColumns}
+          createNewColumn = {createNewColumn}
+          createNewCard = {createNewCard}
+          deleteColumnDetails = {deleteColumnDetails}
+        />
         <DragOverlay dropAnimation={customDropAnimation}>
           {(!activeDragItemType) && null}
           {(activeDragItemType === ACTIVE_DRAG_ITEM_TYPE.COLUMN) && <Column column={activeDragItemData}/>}
